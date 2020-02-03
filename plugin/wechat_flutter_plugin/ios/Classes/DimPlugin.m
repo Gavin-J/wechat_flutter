@@ -211,8 +211,10 @@
         
     }else if([@"addFriend" isEqualToString:call.method]){
         
+        NSString *identifier = call.arguments[@"identifier"];
+        
         TIMFriendRequest *req = [[TIMFriendRequest alloc] init];
-        req.identifier = (NSString *)call.arguments[@"identifier"];
+        req.identifier = identifier;
         req.addWording =@"请添加我";
         req.addSource = @"AddSource_Type_iOS";
         [[TIMFriendshipManager sharedInstance] addFriend:req succ:^(TIMFriendResult *addResult) {
@@ -229,7 +231,7 @@
         
         NSMutableArray * del_users = [[NSMutableArray alloc] init];
         // 删除好友 iOS_002
-        [del_users addObject:@"iOS_002"];
+        [del_users addObject: (NSString *)call.arguments[@"identifier"]];
         // TIM_FRIEND_DEL_BOTH 指定删除双向好友
         [[TIMFriendshipManager sharedInstance] deleteFriends:del_users delType:TIM_FRIEND_DEL_BOTH succ:^(NSArray<TIMFriendResult *> *results) {
             for (TIMFriendResult * res in results) {

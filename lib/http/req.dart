@@ -119,7 +119,7 @@ class Req {
         if (mapNoEmpty(params) || formData.isNotEmpty) {
           response = await _client.post(
             url,
-            data: formData ?? new FormData.from(params),
+            data: formData ?? params,
             onSendProgress: progressCallBack,
             cancelToken: token,
           );
@@ -131,8 +131,13 @@ class Req {
       statusCode = response.statusCode;
 
       if (response != null) {
-        Map data = response.data[0];
-        callBack(data);
+        if (response.data is List) {
+          Map data = response.data[0];
+          callBack(data);
+        } else {
+          Map data = response.data;
+          callBack(data);
+        }
         print('HTTP_REQUEST_URL::[$id]::$url');
         print('HTTP_REQUEST_BODY::[$id]::${params ?? ' no'}');
         print('HTTP_RESPONSE_BODY::[$id]::${response.data}');

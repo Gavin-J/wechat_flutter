@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:dim/commom/win_media.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,18 +42,13 @@ class _LoginPageState extends State<LoginPage> {
             ? new Container()
             : new Padding(
                 padding: EdgeInsets.symmetric(horizontal: 5.0),
-                child: new VerticalLine(),
+                child: new VerticalLine(height: 15.0),
               )
       ],
     );
   }
 
   Widget body(LoginModel model) {
-    List btItem = [
-      S.of(context).retrievePW,
-      S.of(context).emergencyFreeze,
-      S.of(context).weChatSecurityCenter,
-    ];
     return new Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -159,14 +155,6 @@ class _LoginPageState extends State<LoginPage> {
             }
           },
         ),
-        new Expanded(child: new Container()),
-        new Container(
-          margin: EdgeInsets.only(bottom: 20.0),
-          child: new Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: btItem.map(bottomItem).toList(),
-          ),
-        )
       ],
     );
   }
@@ -175,12 +163,31 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final model = Provider.of<LoginModel>(context);
 
+    List btItem = [
+      S.of(context).retrievePW,
+      S.of(context).emergencyFreeze,
+      S.of(context).weChatSecurityCenter,
+    ];
+
     return new Scaffold(
       appBar:
           new ComMomBar(title: '', leadingImg: 'assets/images/bar_close.png'),
       body: new MainInputBody(
         color: appBarColor,
-        child: body(model),
+        child: new Stack(
+          children: <Widget>[
+            new SingleChildScrollView(child: body(model)),
+            new Positioned(
+              bottom: 10,
+              left: 0,
+              right: 0,
+              child: new Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: btItem.map(bottomItem).toList(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

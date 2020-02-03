@@ -24,19 +24,24 @@ class ChatList {
   final String avatar;
   final String name;
   final int time;
-  final String content;
+  final Map content;
   final String identifier;
   final dynamic type;
   final String msgType;
 }
 
 class ChatListData {
+  Future<bool> isNull() async {
+    final str = await getConversationsListData();
+    List<dynamic> data = json.decode(str);
+    return !listNoEmpty(data);
+  }
+
   chatListData() async {
     List<ChatList> chatList = new List<ChatList>();
     String avatar;
     String name;
     int time;
-    String content;
     String identifier;
     dynamic type;
     String msgType;
@@ -65,22 +70,22 @@ class ChatListData {
             name = strNoEmpty(info?.nickname)
                 ? info?.nickname
                 : identifier ?? '未知';
-          }else {
+          } else {
             PersonInfoEntity info = PersonInfoEntity.fromJson(profileData[i]);
             if (strNoEmpty(info?.faceUrl) && info?.faceUrl != '[]') {
               avatar = info?.faceUrl ?? defIcon;
             } else {
               avatar = defIcon;
             }
-            name =
-            strNoEmpty(info?.nickName) ? info?.nickName : identifier ?? '未知';
+            name = strNoEmpty(info?.nickName)
+                ? info?.nickName
+                : identifier ?? '未知';
           }
         }
 
         final message = await getDimMessages(model.peer, num: 1);
         List<dynamic> messageData = json.decode(message);
         MessageEntity messageModel = MessageEntity.fromJson(messageData[0]);
-        content = messageModel.message.text;
 
         time = messageModel.time;
         msgType = messageModel.message.type;
@@ -93,7 +98,7 @@ class ChatListData {
             avatar: avatar,
             name: name,
             time: time,
-            content: content,
+            content: messageData[0],
             msgType: msgType,
           ),
         );

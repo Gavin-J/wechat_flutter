@@ -1,9 +1,8 @@
-import 'package:dim/commom/route.dart';
 import 'package:dim_example/im/conversation_handle.dart';
 import 'package:dim_example/im/model/chat_list.dart';
 import 'package:dim_example/pages/chat/chat_page.dart';
 import 'package:dim_example/tools/wechat_flutter.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:dim_example/ui/view/indicator_page_view.dart';
 import 'package:flutter/material.dart';
 import 'package:dim_example/ui/edit/text_span_builder.dart';
 import 'package:dim_example/ui/chat/my_conversation_view.dart';
@@ -19,11 +18,20 @@ class _HomePageState extends State<HomePage>
   List<ChatList> _chatData = [];
 
   var tapPos;
+  var isNull = false;
   TextSpanBuilder _builder = TextSpanBuilder();
   StreamSubscription<dynamic> _messageStreamSubscription;
 
+  @override
+  void initState() {
+    super.initState();
+    initPlatformState();
+    getChatData();
+  }
+
   Future getChatData() async {
     final str = await ChatListData().chatListData();
+    isNull = await ChatListData().isNull();
 
     List<ChatList> listChat = str;
     _chatData.clear();
@@ -85,19 +93,6 @@ class _HomePageState extends State<HomePage>
   @override
   bool get wantKeepAlive => true;
 
-  @override
-  void initState() {
-    super.initState();
-    initPlatformState();
-    getChatData();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    canCelListener();
-  }
-
   Widget timeView(int time) {
     DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(time * 1000);
 
@@ -113,52 +108,65 @@ class _HomePageState extends State<HomePage>
 
     String timeStr = '$hour:$minute';
 
-    return Text(
-      timeStr,
-      style: TextStyle(color: mainTextColor, fontSize: 14.0),
+    return new SizedBox(
+      width: 35.0,
+      child: new Text(
+        timeStr,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(color: mainTextColor, fontSize: 14.0),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    if (!listNoEmpty(_chatData)) return new LoadingView();
-
+    if (isNull) return new HomeNullView();
     return new Container(
       color: Color(AppColors.BackgroundColor),
-      child: new ListView.builder(
-        itemBuilder: (BuildContext context, int index) {
-          ChatList model = _chatData[index];
+      child: new ScrollConfiguration(
+        behavior: MyBehavior(),
+        child: new ListView.builder(
+          itemBuilder: (BuildContext context, int index) {
+            ChatList model = _chatData[index];
 
-          return InkWell(
-            onTap: () {
-              routePush(new ChatPage(
-                  id: model.identifier,
-                  title: model.name,
-                  type: model.type == 'Group' ? 2 : 1));
-            },
-            onTapDown: (TapDownDetails details) {
-              tapPos = details.globalPosition;
-            },
-            onLongPress: () {
-              if (Platform.isAndroid) {
-                _showMenu(context, tapPos, model.type == 'Group' ? 2 : 1,
-                    model.identifier);
-              } else {
-                debugPrint("IOS聊天长按选项功能开发中");
-              }
-            },
-            child: new MyConversationView(
-              imageUrl: model.avatar,
-              title: model?.name ?? '',
-              content: model?.content ?? '',
-              time: timeView(model?.time ?? 0),
-              isBorder: model?.name != _chatData[0].name,
-            ),
-          );
-        },
-        itemCount: _chatData?.length ?? 1,
+            return InkWell(
+              onTap: () {
+                routePush(new ChatPage(
+                    id: model.identifier,
+                    title: model.name,
+                    type: model.type == 'Group' ? 2 : 1));
+              },
+              onTapDown: (TapDownDetails details) {
+                tapPos = details.globalPosition;
+              },
+              onLongPress: () {
+                if (Platform.isAndroid) {
+                  _showMenu(context, tapPos, model.type == 'Group' ? 2 : 1,
+                      model.identifier);
+                } else {
+                  debugPrint("IOS聊天长按选项功能开发中");
+                }
+              },
+              child: new MyConversationView(
+                imageUrl: model.avatar,
+                title: model?.name ?? '',
+                content: model?.content,
+                time: timeView(model?.time ?? 0),
+                isBorder: model?.name != _chatData[0].name,
+              ),
+            );
+          },
+          itemCount: _chatData?.length ?? 1,
+        ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    canCelListener();
   }
 }
